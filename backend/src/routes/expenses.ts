@@ -281,4 +281,3 @@ router.delete('/:id', requireRole('owner', 'accountant'), (req: Request, res: Re
 });
 
 export default router;
-

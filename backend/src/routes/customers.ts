@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import { nowIso, round2, auditLog } from '../utils/helpers.js';
 
 const router = Router();
@@ -48,7 +48,7 @@ router.get('/', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/customers
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/', (req: Request, res: Response): void => {
+router.post('/', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const {
       name, business_name, phone, email, address,
@@ -132,7 +132,7 @@ router.get('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUT /api/customers/:id
 // ─────────────────────────────────────────────────────────────────────────────
-router.put('/:id', (req: Request, res: Response): void => {
+router.put('/:id', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -180,7 +180,7 @@ router.put('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  DELETE /api/customers/:id  (soft delete)
 // ─────────────────────────────────────────────────────────────────────────────
-router.delete('/:id', (req: Request, res: Response): void => {
+router.delete('/:id', requireRole('owner'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;

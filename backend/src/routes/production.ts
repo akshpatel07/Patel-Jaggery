@@ -13,7 +13,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import {
   nowIso, today, round2, auditLog,
   generateBatchNumber, getSugarcaneCostPerTonne,
@@ -54,7 +54,7 @@ router.get('/', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/production — create draft batch
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/', (req: Request, res: Response): void => {
+router.post('/', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const {
       production_date, description,
@@ -157,7 +157,7 @@ router.get('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUT /api/production/:id — update draft batch only
 // ─────────────────────────────────────────────────────────────────────────────
-router.put('/:id', (req: Request, res: Response): void => {
+router.put('/:id', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -214,7 +214,7 @@ router.put('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/production/:id/ingredients — set/replace ingredients for draft
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/ingredients', (req: Request, res: Response): void => {
+router.post('/:id/ingredients', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -276,7 +276,7 @@ router.post('/:id/ingredients', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/production/:id/confirm — CONFIRM a batch (critical path)
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/confirm', (req: Request, res: Response): void => {
+router.post('/:id/confirm', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -483,7 +483,7 @@ router.post('/:id/confirm', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/production/:id/cancel — cancel a batch and reverse movements
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/cancel', (req: Request, res: Response): void => {
+router.post('/:id/cancel', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;

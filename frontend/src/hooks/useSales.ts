@@ -122,7 +122,12 @@ export function useRecordSalePayment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...data }: { id: number; amount: number; date: string; method: string; notes?: string }) => {
-      const res = await api.post(`/sales/${id}/payments`, data)
+      const res = await api.post(`/sales/${id}/payment`, {
+        payment_date: data.date,
+        amount: data.amount,
+        payment_method: data.method,
+        notes: data.notes,
+      })
       return res.data
     },
     onSuccess: (_, variables) => {

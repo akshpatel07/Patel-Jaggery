@@ -26,7 +26,13 @@ export function useCreateFinishedGoodsAdjustment() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (data: { productId: number; quantity: number; type: string; reason: string; date: string }) => {
-      const res = await api.post('/finished-goods/adjustments', data)
+      const res = await api.post('/finished-goods/adjustment', {
+        item_id: String(data.productId),
+        quantity: data.quantity,
+        movement_type: data.type,
+        movement_date: data.date,
+        notes: data.reason,
+      })
       return res.data
     },
     onSuccess: () => {

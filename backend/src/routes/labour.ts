@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import { nowIso, today, round2, auditLog } from '../utils/helpers.js';
 
 const router = Router();
@@ -31,7 +31,7 @@ router.get('/rates', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/labour/rates
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/rates', (req: Request, res: Response): void => {
+router.post('/rates', requireRole('owner'), (req: Request, res: Response): void => {
   try {
     const { rate_per_100kg, effective_date, notes } = req.body as {
       rate_per_100kg?: number; effective_date?: string; notes?: string;

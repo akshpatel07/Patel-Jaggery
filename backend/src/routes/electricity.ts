@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import { nowIso, round2, auditLog } from '../utils/helpers.js';
 
 const router = Router();
@@ -39,7 +39,7 @@ router.get('/bills', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/electricity/bills
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/bills', (req: Request, res: Response): void => {
+router.post('/bills', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const {
       bill_date, bill_number, total_amount, period_from, period_to,
@@ -80,7 +80,7 @@ router.post('/bills', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUT /api/electricity/bills/:id
 // ─────────────────────────────────────────────────────────────────────────────
-router.put('/bills/:id', (req: Request, res: Response): void => {
+router.put('/bills/:id', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -154,7 +154,7 @@ router.get('/bills/:id/allocations', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/electricity/allocate — allocate bill amount to batches
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/allocate', (req: Request, res: Response): void => {
+router.post('/allocate', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const { bill_id, allocations } = req.body as {
       bill_id?: string;

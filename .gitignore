@@ -5,6 +5,7 @@ dist/
 *.log
 *.db-shm
 *.db-wal
+*.db
 .env
 .env.*
 !.env.example

@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import {
   nowIso, round2, auditLog,
   getFinishedGoodsStock, getFinishedGoodsWeightedAvgCost,
@@ -75,6 +75,33 @@ router.get('/', (req: Request, res: Response): void => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/finished-goods/movements
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/movements', (req: Request, res: Response): void => {
+  try {
+    const db = getDb();
+    const { from, to, type } = req.query as { from?: string; to?: string; type?: string };
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    if (from) { conditions.push('m.movement_date >= ?'); params.push(from); }
+    if (to) { conditions.push('m.movement_date <= ?'); params.push(to); }
+    if (type) { conditions.push('m.movement_type = ?'); params.push(type); }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const movements = db.prepare(`
+      SELECT m.*, i.name AS item_name
+      FROM finished_goods_movements m
+      JOIN finished_goods_items i ON i.id = m.item_id
+      ${where}
+      ORDER BY m.movement_date DESC, m.created_at DESC
+    `).all(...params);
+    res.json({ movements });
+  } catch (err) {
+    console.error('[finished-goods GET /movements]', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/finished-goods/:id/movements
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/:id/movements', (req: Request, res: Response): void => {
@@ -107,7 +134,7 @@ router.get('/:id/movements', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/finished-goods/adjustment
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/adjustment', (req: Request, res: Response): void => {
+router.post('/adjustment', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const { item_id, movement_date, quantity, movement_type, unit_cost, notes } = req.body as {
       item_id?: string; movement_date?: string; quantity?: number;

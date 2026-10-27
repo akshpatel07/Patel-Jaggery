@@ -5,8 +5,8 @@ import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@sweetharvest.com')
-  const [password, setPassword] = useState('admin123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -57,7 +57,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="form-input pl-10"
-                  placeholder="admin@sweetharvest.com"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
@@ -97,12 +97,8 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="p-3 bg-cream-50 border border-gold-400/30 rounded-lg text-xs text-gray-600 text-center">
-            <span className="font-semibold text-primary-800">Default Credentials:</span> admin@sweetharvest.com / admin123
-          </div>
         </form>
       </div>
     </div>
   )
 }
-

@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import { nowIso, round2, auditLog, getRawMaterialStock } from '../utils/helpers.js';
 
 const router = Router();
@@ -63,7 +63,7 @@ router.get('/', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/raw-materials — create item
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/', (req: Request, res: Response): void => {
+router.post('/', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const { name, unit, is_sugarcane, min_stock_level } = req.body as {
       name?: string; unit?: string; is_sugarcane?: boolean; min_stock_level?: number;
@@ -93,7 +93,7 @@ router.post('/', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUT /api/raw-materials/:id — update item
 // ─────────────────────────────────────────────────────────────────────────────
-router.put('/:id', (req: Request, res: Response): void => {
+router.put('/:id', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -119,6 +119,33 @@ router.put('/:id', (req: Request, res: Response): void => {
     res.json({ item });
   } catch (err) {
     console.error('[raw-materials PUT /:id]', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/raw-materials/movements — movement history
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/movements', (req: Request, res: Response): void => {
+  try {
+    const db = getDb();
+    const { from, to, type } = req.query as { from?: string; to?: string; type?: string };
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    if (from) { conditions.push('m.movement_date >= ?'); params.push(from); }
+    if (to) { conditions.push('m.movement_date <= ?'); params.push(to); }
+    if (type) { conditions.push('m.movement_type = ?'); params.push(type); }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const movements = db.prepare(`
+      SELECT m.*, i.name AS material_name
+      FROM raw_material_movements m
+      JOIN raw_material_items i ON i.id = m.material_id
+      ${where}
+      ORDER BY m.movement_date DESC, m.created_at DESC
+    `).all(...params);
+    res.json({ movements });
+  } catch (err) {
+    console.error('[raw-materials GET /movements]', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -157,7 +184,7 @@ router.get('/:id/movements', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/raw-materials/adjustment — manual stock adjustment
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/adjustment', (req: Request, res: Response): void => {
+router.post('/adjustment', requireRole('owner', 'production_manager'), (req: Request, res: Response): void => {
   try {
     const { material_id, movement_date, quantity, unit_cost, movement_type, notes } = req.body as {
       material_id?: string; movement_date?: string; quantity?: number;

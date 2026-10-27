@@ -126,15 +126,14 @@ cd backend && npm run dev
 
 Visit: `http://localhost:3001` (or frontend dev server on `http://localhost:5173`)
 
-### Default Login
-- **Email:** `admin@sweetharvest.com`
-- **Password:** `admin123`
+### Initial Login
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the environment before the first production start. The password must be at least 12 characters. No default credentials are created or published.
 
 ---
 
 ## ☁️ Deploying to Microsoft Azure (Personal Use, No Domain Required)
 
-See [`AZURE_DEPLOYMENT_GUIDE.md`](./AZURE_DEPLOYMENT_GUIDE.md) for full instructions, or run the automated script:
+See [`AZURE_DEPLOYMENT_GUIDE.md`](./AZURE_DEPLOYMENT_GUIDE.md) for full instructions, including required `JWT_SECRET`, `ADMIN_PASSWORD`, and persistent `DB_PATH` settings, or run the automated script:
 
 ```powershell
 .\deploy-to-azure.ps1
@@ -142,4 +141,3 @@ See [`AZURE_DEPLOYMENT_GUIDE.md`](./AZURE_DEPLOYMENT_GUIDE.md) for full instruct
 
 This will automatically create your Azure App Service instance and host SweetHarvest at:
 `https://<your-app-name>.azurewebsites.net`
-

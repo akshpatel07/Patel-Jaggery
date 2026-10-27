@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import { nowIso, round2, auditLog } from '../utils/helpers.js';
 
 const router = Router();
@@ -55,7 +55,7 @@ router.get('/', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/purchases
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/', (req: Request, res: Response): void => {
+router.post('/', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const {
       purchase_date, supplier_id, reference_number,
@@ -185,7 +185,7 @@ router.get('/:id', (req: Request, res: Response): void => {
 //  Only allowed if no confirmed batch has consumed this purchase's sugarcane.
 //  Approach: we allow updates to metadata fields; recalculate costs.
 // ─────────────────────────────────────────────────────────────────────────────
-router.put('/:id', (req: Request, res: Response): void => {
+router.put('/:id', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -262,7 +262,7 @@ router.put('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/purchases/:id/cancel
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/cancel', (req: Request, res: Response): void => {
+router.post('/:id/cancel', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -297,7 +297,7 @@ router.post('/:id/cancel', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/purchases/:id/payment
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/payment', (req: Request, res: Response): void => {
+router.post('/:id/payment', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;

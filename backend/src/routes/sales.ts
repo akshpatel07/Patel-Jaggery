@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireRole } from '../middleware/auth.js';
 import {
   nowIso, round2, auditLog, generateInvoiceNumber,
   getFinishedGoodsStock, getFinishedGoodsWeightedAvgCost,
@@ -14,6 +14,10 @@ import {
 
 const router = Router();
 router.use(verifyToken);
+
+router.get('/next-invoice-number', requireRole('owner', 'accountant'), (_req: Request, res: Response): void => {
+  res.json({ invoice_number: generateInvoiceNumber() });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/sales
@@ -56,7 +60,7 @@ router.get('/', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/sales — create draft sale
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/', (req: Request, res: Response): void => {
+router.post('/', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const {
       sale_date, customer_id, item_id, quantity_kg, price_per_kg,
@@ -149,7 +153,7 @@ router.get('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  PUT /api/sales/:id — update draft sale
 // ─────────────────────────────────────────────────────────────────────────────
-router.put('/:id', (req: Request, res: Response): void => {
+router.put('/:id', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -211,7 +215,7 @@ router.put('/:id', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/sales/:id/confirm
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/confirm', (req: Request, res: Response): void => {
+router.post('/:id/confirm', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -280,7 +284,7 @@ router.post('/:id/confirm', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/sales/:id/cancel
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/cancel', (req: Request, res: Response): void => {
+router.post('/:id/cancel', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;
@@ -332,7 +336,7 @@ router.post('/:id/cancel', (req: Request, res: Response): void => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/sales/:id/payment
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/payment', (req: Request, res: Response): void => {
+router.post('/:id/payment', requireRole('owner', 'accountant'), (req: Request, res: Response): void => {
   try {
     const db = getDb();
     const { id } = req.params;

@@ -64,7 +64,10 @@ az webapp config appsettings set \
   --settings \
     WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
     NODE_ENV=production \
-    JWT_SECRET=sweetharvest-super-secret-key-change-this
+    DB_PATH=/home/data/sweetharvest.db \
+    JWT_SECRET=<random-secret-at-least-32-characters> \
+    ADMIN_EMAIL=<your-admin-email> \
+    ADMIN_PASSWORD=<random-password-at-least-12-characters>
 ```
 
 ### Step 6: Deploy the Built App (ZIP Deploy)
@@ -100,9 +103,5 @@ Then push to Azure Container Registry or Docker Hub, and configure your Azure We
 
 ---
 
-## Default Login Credentials
-Once deployed, log in with:
-- **Email:** `admin@sweetharvest.com`
-- **Password:** `admin123`
-*(Change this in the Users or Profile settings after initial login)*
-
+## Initial Login
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` as App Service settings before the first production start. The application does not create a known default password.

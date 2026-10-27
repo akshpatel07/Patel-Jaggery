@@ -7,8 +7,13 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { getDb } from '../db/database.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sweetharvest-secret-key-change-in-production';
+const configuredJwtSecret = process.env.JWT_SECRET;
 
+if (!configuredJwtSecret || configuredJwtSecret.length < 32) {
+  throw new Error('JWT_SECRET must be configured with at least 32 characters.');
+}
+
+const JWT_SECRET: string = configuredJwtSecret;
 export interface AuthenticatedUser {
   id: string;
   name: string;
@@ -39,7 +44,17 @@ export function verifyToken(req: Request, res: Response, next: NextFunction): vo
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthenticatedUser;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (
+      typeof decoded === 'string' ||
+      typeof decoded.id !== 'string' ||
+      typeof decoded.name !== 'string' ||
+      typeof decoded.email !== 'string' ||
+      typeof decoded.role !== 'string'
+    ) {
+      res.status(401).json({ error: 'Invalid authentication token.' });
+      return;
+    }
 
     // Confirm the user still exists and is active in DB
     const db = getDb();

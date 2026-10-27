@@ -95,14 +95,19 @@ function seedDefaultData(db: AppDatabase): void {
   const today = now.slice(0, 10);
 
   // 1. Default admin user
-  const existingAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@sweetharvest.com');
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@sweetharvest.com').toLowerCase().trim();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (process.env.NODE_ENV === 'production' && (!adminPassword || adminPassword.length < 12)) {
+    throw new Error('ADMIN_PASSWORD must be configured with at least 12 characters in production.');
+  }
+  const existingAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
   if (!existingAdmin) {
-    const passwordHash = bcrypt.hashSync('admin123', 10);
+    const passwordHash = bcrypt.hashSync(adminPassword || `${uuidv4()}-${uuidv4()}`, 12);
     db.prepare(`
       INSERT INTO users (id, name, email, password_hash, role, is_active, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-    `).run(uuidv4(), 'Admin', 'admin@sweetharvest.com', passwordHash, 'owner', now, now);
-    console.log('[DB] Seeded default admin user: admin@sweetharvest.com / admin123');
+    `).run(uuidv4(), 'Admin', adminEmail, passwordHash, 'owner', now, now);
+    console.log(`[DB] Seeded initial admin user: ${adminEmail}`);
   }
 
   // 2. Default settings

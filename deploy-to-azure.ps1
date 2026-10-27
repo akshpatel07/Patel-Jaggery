@@ -51,11 +51,22 @@ az webapp create --resource-group $ResourceGroup --plan $PlanName --name $AppNam
 
 # 7. Configure Persistent Storage for SQLite Database
 Write-Host "`nConfiguring persistent storage and environment variables..." -ForegroundColor Cyan
+if (-not $env:JWT_SECRET -or $env:JWT_SECRET.Length -lt 32) {
+    Write-Host "Set JWT_SECRET to a random value of at least 32 characters before running this script." -ForegroundColor Red
+    exit 1
+}
+if (-not $env:ADMIN_PASSWORD -or $env:ADMIN_PASSWORD.Length -lt 12) {
+    Write-Host "Set ADMIN_PASSWORD to a private value of at least 12 characters before running this script." -ForegroundColor Red
+    exit 1
+}
 az webapp config appsettings set --resource-group $ResourceGroup --name $AppName --settings `
     WEBSITES_ENABLE_APP_SERVICE_STORAGE=true `
     NODE_ENV=production `
     PORT=80 `
-    JWT_SECRET="sweetharvest-secret-$(New-Guid)" --output table
+    DB_PATH=/home/data/sweetharvest.db `
+    JWT_SECRET=$env:JWT_SECRET `
+    ADMIN_EMAIL=$env:ADMIN_EMAIL `
+    ADMIN_PASSWORD=$env:ADMIN_PASSWORD --output table
 
 # 8. Set Startup Command
 az webapp config set --resource-group $ResourceGroup --name $AppName --startup-file "node backend/dist/index.js" --output table
@@ -75,6 +86,5 @@ az webapp deploy --resource-group $ResourceGroup --name $AppName --src-path $zip
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host "🎉 SweetHarvest is LIVE on Azure!" -ForegroundColor Green
 Write-Host "URL: https://$AppName.azurewebsites.net" -ForegroundColor Yellow
-Write-Host "Default Login: admin@sweetharvest.com / admin123" -ForegroundColor Cyan
+Write-Host "Initial credentials are supplied through ADMIN_EMAIL and ADMIN_PASSWORD." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Green
-

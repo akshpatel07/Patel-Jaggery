@@ -409,4 +409,3 @@ export default function RawMaterialsPage() {
     </div>
   )
 }
-
