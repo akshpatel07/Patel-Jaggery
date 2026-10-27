@@ -1,0 +1,11 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.log
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+deploy.zip

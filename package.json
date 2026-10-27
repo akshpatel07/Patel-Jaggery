@@ -1,0 +1,19 @@
+{
+  "name": "sweetharvest",
+  "version": "1.0.0",
+  "description": "SweetHarvest - Jaggery Business Management Application",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "start": "node backend/dist/index.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "keywords": ["jaggery", "manufacturing", "business", "erp", "azure"],
+  "author": "",
+  "license": "ISC"
+}
+

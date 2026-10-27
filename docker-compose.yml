@@ -1,0 +1,17 @@
+services:
+  sweetharvest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sweetharvest-app
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    environment:
+      - NODE_ENV=production
+      - PORT=80
+      - JWT_SECRET=sweetharvest-super-secret-key-change-this
+    volumes:
+      # Persist SQLite database on host machine
+      - ./data:/app/data
+
