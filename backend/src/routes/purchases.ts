@@ -70,11 +70,18 @@ router.post('/', (req: Request, res: Response): void => {
     };
 
     if (!purchase_date) { res.status(400).json({ error: 'purchase_date is required.' }); return; }
-    if (!quantity_tonnes || quantity_tonnes <= 0) {
+    if (typeof quantity_tonnes !== 'number' || !Number.isFinite(quantity_tonnes) || quantity_tonnes <= 0) {
       res.status(400).json({ error: 'quantity_tonnes must be > 0.' }); return;
     }
-    if (!rate_per_tonne || rate_per_tonne <= 0) {
+    if (typeof rate_per_tonne !== 'number' || !Number.isFinite(rate_per_tonne) || rate_per_tonne <= 0) {
       res.status(400).json({ error: 'rate_per_tonne must be > 0.' }); return;
+    }
+    if (
+      typeof transport_cost !== 'number' || !Number.isFinite(transport_cost) || transport_cost < 0 ||
+      typeof loading_charges !== 'number' || !Number.isFinite(loading_charges) || loading_charges < 0 ||
+      typeof other_expenses !== 'number' || !Number.isFinite(other_expenses) || other_expenses < 0
+    ) {
+      res.status(400).json({ error: 'Additional costs must be valid non-negative numbers.' }); return;
     }
 
     const base_cost = round2(quantity_tonnes * rate_per_tonne);

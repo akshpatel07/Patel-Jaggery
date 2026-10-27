@@ -9,11 +9,16 @@ import { DatabaseSync } from 'node:sqlite';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { SCHEMA_SQL } from './schema.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', '..', 'sweetharvest.db');
+const DB_PATH =
+  process.env.DB_PATH ||
+  (process.env.NODE_ENV === 'production'
+    ? '/home/data/sweetharvest.db'
+    : path.join(__dirname, '..', '..', 'sweetharvest.db'));
 
 export interface AppDatabase {
   exec(sql: string): void;
@@ -35,6 +40,7 @@ export function getDb(): AppDatabase {
 }
 
 export function initializeDatabase(): void {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const rawDb = new DatabaseSync(DB_PATH);
 
   // Enable WAL mode & foreign keys

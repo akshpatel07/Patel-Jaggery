@@ -88,12 +88,15 @@ export function useUpdatePurchase() {
 export function useCancelPurchase() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number) => {
-      const res = await api.patch(`/purchases/${id}/cancel`)
+    mutationFn: async (id: number | string) => {
+      const res = await api.post(`/purchases/${id}/cancel`)
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['purchases'] })
+      qc.invalidateQueries({ queryKey: ['purchases', id] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['rawMaterials'] })
       toast.success('Purchase cancelled')
     },
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to cancel purchase')
@@ -103,8 +106,8 @@ export function useCancelPurchase() {
 export function useRecordPurchasePayment() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, ...data }: { id: number; amount: number; date: string; method: string; notes?: string }) => {
-      const res = await api.post(`/purchases/${id}/payments`, data)
+    mutationFn: async ({ id, ...data }: { id: number | string; payment_date: string; amount: number; payment_method: string; notes?: string }) => {
+      const res = await api.post(`/purchases/${id}/payment`, data)
       return res.data
     },
     onSuccess: (_, variables) => {
