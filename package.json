@@ -7,7 +7,7 @@
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
-    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "build": "npm ci --prefix frontend && npm run build --prefix frontend && npm ci --prefix backend && npm run build --prefix backend && npm install --prefix backend --omit=dev",
     "start": "node backend/dist/index.js",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev"
@@ -16,4 +16,3 @@
   "author": "",
   "license": "ISC"
 }
-
